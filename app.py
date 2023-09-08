@@ -3,6 +3,7 @@ import random
 import base64
 import pandas as pd
 from libgen_api import LibgenSearch
+from deta import Deta
 import time
 
 st.set_page_config(
@@ -25,6 +26,13 @@ ga_code = """<!-- Google tag (gtag.js) -->
     gtag('config', 'G-7BZWCYKNKP');
 </script>"""
 st.markdown(ga_code, unsafe_allow_html=True)
+
+# Connect to Deta Base with your Data Key
+deta = Deta(st.secrets["data_key"])
+
+# Create a new databases
+querydb = deta.Base("ultrasearch-queries")
+#linkdb = deta.Base("ultrasearch-links") need to create db.put code below
 
 # Function to randomly get data_url for image
 @st.cache_data(ttl=60)
@@ -86,6 +94,12 @@ def display_results(results):
         for i, value in enumerate(download_links.values(), start=1):
             right.markdown(f"[Download Link {i}]({value})")
         st.divider()
+    
+    # record query into db
+    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+    querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
+    # db_content = db.fetch().items
+    # st.write(db_content)
 
 # Search options
 search_type = st.radio(
