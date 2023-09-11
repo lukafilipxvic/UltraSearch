@@ -86,9 +86,9 @@ def display_results(results):
         # Columns for response
         left, right = st.columns([3, 1], gap="small")
 
-        left.caption(f"{i}.&emsp;**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-        left.write(f"**Author:** {book['Author']}")
-        left.write(f"[*{book['Title']}*]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare link
+        left.caption(f"**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
+        left.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare link
+        left.write(f"*{book['Author']}*")
 
         # Display the download links as "Link 1", "Link 2", "Link 3"
         for i, value in enumerate(download_links.values(), start=1):
@@ -97,7 +97,7 @@ def display_results(results):
     
     # record query into db
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
+    ##querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
     # db_content = db.fetch().items
     # st.write(db_content)
 
