@@ -1,4 +1,4 @@
-libgen_api
+git+https://github.com/HENRYMARTIN5/libgen-api
 numpy
 pandas
 pillow
