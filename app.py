@@ -106,7 +106,7 @@ def display_results(results):
     
     # record query into db
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    #querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
+    querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
     # db_content = db.fetch().items
     # st.write(db_content)
 
