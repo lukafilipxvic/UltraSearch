@@ -1,4 +1,6 @@
 .streamlit/secrets.toml
+.space
+Spacefile
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

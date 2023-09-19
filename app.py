@@ -5,6 +5,8 @@ import pandas as pd
 from libgen_api import LibgenSearch
 from deta import Deta
 import time
+from libgen_image import libgen_image
+import urllib.request
 
 st.set_page_config(
     layout="centered",
@@ -42,10 +44,9 @@ def rnd_image_load():
                     "images/magnifying-glass-tilted-right.webp",
                     ]
     random_image_filename = random.choice(image_filenames)
-    file_ = open(random_image_filename, "rb")
-    contents = file_.read()
-    data_url = base64.b64encode(contents).decode("utf-8")
-    file_.close()
+    with open(random_image_filename, "rb") as file_:
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
     return data_url
 
 # Load the images and display it
@@ -79,16 +80,24 @@ def search_books(search_type, query):
             filtered_results.append(book)
     return filtered_results
 
+def cache_image(image_url):
+    urllib.request.urlretrieve(image_url, "temp_image.jpg")
+    return "temp_image.jpg"
+
 def display_results(results):
     for i, book in enumerate(results, start=1):
         download_links = s.resolve_download_links(book)
+        cover = libgen_image(book)
 
         # Columns for response
-        left, right = st.columns([3, 1], gap="small")
+        left, middle, right = st.columns([1, 3, 1], gap="small")
 
-        left.caption(f"**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-        left.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare link
-        left.write(f"*{book['Author']}*")
+        image_path = cache_image(cover)
+        left.image(image_path)
+
+        middle.caption(f"**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
+        middle.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare link
+        middle.write(f"*{book['Author']}*")
 
         # Display the download links as "Link 1", "Link 2", "Link 3"
         for i, value in enumerate(download_links.values(), start=1):
@@ -97,7 +106,7 @@ def display_results(results):
     
     # record query into db
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
+    #querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
     # db_content = db.fetch().items
     # st.write(db_content)
 
