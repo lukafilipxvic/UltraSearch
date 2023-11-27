@@ -6,7 +6,7 @@ from libgen_api import LibgenSearch
 from deta import Deta
 import time
 from libgen_image import libgen_image
-import urllib.request
+import hide_st
 
 st.set_page_config(
     layout="centered",
@@ -80,19 +80,14 @@ def search_books(search_type, query):
             filtered_results.append(book)
     return filtered_results
 
-def cache_image(image_url):
-    urllib.request.urlretrieve(image_url, "temp_image.jpg")
-    return "temp_image.jpg"
-
 def display_results(results):
     for i, book in enumerate(results, start=1):
         download_links = s.resolve_download_links(book)
-        cover = libgen_image(book)
+        image_path = libgen_image(book)
 
         # Columns for response
-        left, middle, right = st.columns([1, 3, 1], gap="small")
+        left, middle, right = st.columns([0.8, 3, 1], gap="small")
 
-        image_path = cache_image(cover)
         left.image(image_path)
 
         middle.caption(f"**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
@@ -106,7 +101,7 @@ def display_results(results):
     
     # record query into db
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
+    #querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
     # db_content = db.fetch().items
     # st.write(db_content)
 
@@ -149,11 +144,5 @@ if query:
         st.info("None found. Please try again.")
 
 # Hide made with Streamlit footer and top-right main menu button
-hide_streamlit_style = """
-            <style>
-            stSidebar {visibility: hidden;}
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+hide_st.footer()
+hide_st.header()
