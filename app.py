@@ -7,6 +7,8 @@ from deta import Deta
 import time
 from libgen_image import libgen_image
 import hide_st
+import requests
+from bs4 import BeautifulSoup
 
 st.set_page_config(
     layout="centered",
@@ -16,6 +18,21 @@ st.set_page_config(
 )
 
 ## Fix this major libgen-api error >>> IndexError: list index out of range
+
+st.markdown("""
+            <div id="div"></div>
+            <script>
+                window.addEventListener('message', (event) => {
+                    if (event.data === 'removeElement') {
+                        var element = document.querySelector('#root > div:first-child > div > div > a');
+                        if (element) {
+                            element.parentNode.removeChild(element);
+                        }
+                    }
+                });
+            </script>
+            """,
+            unsafe_allow_html=True)
 
 # Google Analytics
 ga_code = """<!-- Google tag (gtag.js) -->
@@ -80,24 +97,34 @@ def search_books(search_type, query):
             filtered_results.append(book)
     return filtered_results
 
+def resolve_download_links(item):
+    MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Pinata"] # libgen-api doesn't get the Pinata link
+    mirror_1 = item["Mirror_1"]
+    page = requests.get(mirror_1)
+    soup = BeautifulSoup(page.text, "html.parser")
+    links = soup.find_all("a", string=MIRROR_SOURCES)
+    download_links = {link.string: link["href"] for link in links}
+    return download_links
+
 def display_results(results):
     for i, book in enumerate(results, start=1):
-        download_links = s.resolve_download_links(book)
-        image_path = libgen_image(book)
+        with st.spinner(f'Gathering knowledge... &emsp; {i}/{len(results)}'):
+            download_links = resolve_download_links(book)
+            image_path = libgen_image(book)
 
-        # Columns for response
-        left, middle, right = st.columns([0.8, 3, 1], gap="small")
+            # Columns for response
+            left, mid, right = st.columns([0.8, 3, 1], gap="small")
 
-        left.image(image_path)
+            left.image(image_path)
 
-        middle.caption(f"**Year:** {book['Year']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-        middle.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare link
-        middle.write(f"*{book['Author']}*")
+            mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
+            mid.write(f"[**{book['Title']}**]({list(download_links.values())[0]})")  # Hyperlink the book title with the library.lol link
+            mid.write(f"*{book['Author']}*")
 
-        # Display the download links as "Link 1", "Link 2", "Link 3"
-        for i, value in enumerate(download_links.values(), start=1):
-            right.markdown(f"[Download Link {i}]({value})")
-        st.divider()
+            # Display the download links as "Link 1", "Link 2", "Link 3"
+            for i, value in enumerate(download_links.values(), start=1):
+                right.markdown(f"[Download Link {i}]({value})")
+            st.divider()
     
     # record query into db
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
@@ -112,7 +139,7 @@ search_type = st.radio(
     index=0, horizontal=True)
 
 # Search query input
-query = st.text_input(f"Search {search_type.lower()}:", help="Search is case and symbol sensitive")
+query = st.text_input(f"Search {search_type.lower()}:", help="Search is case and symbol sensitive.")
 
 # Filters for search
 col1, col2 = st.columns([0.2,0.8], gap="small")
@@ -128,21 +155,22 @@ if english_only:
 
 # Search button
 if query:
-    results = search_books(search_type, query)
+    with st.spinner('Searching...'):
+        results = search_books(search_type, query)
     if results:
         # Create a new dataframe with only the desired columns
         new_results = pd.DataFrame(
             results, columns=['Author', 'Title', 'Publisher', 'Year', 'Size', 'Extension'])
         new_results['Year'].fillna('NA', inplace=True)
 
-        st.info(f"Showing results for {len(results)} items.")
+        st.info(f"Showing results for {len(results)} items")
         # st.dataframe(new_results, use_container_width=True) ## df of the results
         st.divider()
-
         display_results(results)
     else:
         st.info("None found. Please try again.")
 
+
 # Hide made with Streamlit footer and top-right main menu button
-hide_st.footer()
 hide_st.header()
+hide_st.footer()

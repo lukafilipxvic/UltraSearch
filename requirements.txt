@@ -1,6 +1,8 @@
-git+https://github.com/HENRYMARTIN5/libgen-api
+libgen-api
 numpy
 pandas
 pillow
 streamlit
 deta
+bs4
+requests
