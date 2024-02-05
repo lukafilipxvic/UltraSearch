@@ -101,7 +101,7 @@ def display_results(results):
             left.image(image_path)
 
             mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-            mid.write(f"[**{book['Title']}**]({list(download_links.values())[0]})")  # Hyperlink the book title with the library.lol link
+            mid.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare ipfs link
             mid.write(f"*{book['Author']}*")
 
             # Display the download links as "Link 1", "Link 2", "Link 3"
