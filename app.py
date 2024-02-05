@@ -19,21 +19,6 @@ st.set_page_config(
 
 ## Fix this major libgen-api error >>> IndexError: list index out of range
 
-st.markdown("""
-            <div id="div"></div>
-            <script>
-                window.addEventListener('message', (event) => {
-                    if (event.data === 'removeElement') {
-                        var element = document.querySelector('#root > div:first-child > div > div > a');
-                        if (element) {
-                            element.parentNode.removeChild(element);
-                        }
-                    }
-                });
-            </script>
-            """,
-            unsafe_allow_html=True)
-
 # Google Analytics
 ga_code = """<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BZWCYKNKP"></script>
@@ -174,3 +159,23 @@ if query:
 # Hide made with Streamlit footer and top-right main menu button
 hide_st.header()
 hide_st.footer()
+
+st.markdown("""
+            <div id="div"></div>
+            <script>
+                window.addEventListener('message', (event) => {
+                    // Replace 'http://127.0.0.1:5500/site/index.html' with the origin of your parent page
+                    if (event.origin !== "http://127.0.0.1:5500/site/index.html") {
+                        return; // Ignore messages from unknown origins for security
+                    }
+
+                    if (event.data.action === 'removeElement') {
+                        const element = document.querySelector(event.data.selector);
+                        if (element) {
+                            element.parentNode.removeChild(element);
+                        }
+                    }
+                });
+            </script>
+            """,
+            unsafe_allow_html=True)
