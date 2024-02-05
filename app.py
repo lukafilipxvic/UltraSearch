@@ -17,7 +17,26 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-## Fix this major libgen-api error >>> IndexError: list index out of range
+
+st.markdown("""
+            <div id="div"></div>
+            <script>
+                window.addEventListener('message', (event) => {
+                    // Replace 'https://ultrasearch.pages.dev/' with the origin of your parent page
+                    if (event.origin !== "https://ultrasearch.pages.dev/") {
+                        return; // Ignore messages from unknown origins for security
+                    }
+
+                    if (event.data.action === 'removeElement') {
+                        const element = document.querySelector(event.data.selector);
+                        if (element) {
+                            element.parentNode.removeChild(element);
+                        }
+                    }
+                });
+            </script>
+            """,
+            unsafe_allow_html=True)
 
 # Google Analytics
 ga_code = """<!-- Google tag (gtag.js) -->
@@ -160,22 +179,3 @@ if query:
 hide_st.header()
 hide_st.footer()
 
-st.markdown("""
-            <div id="div"></div>
-            <script>
-                window.addEventListener('message', (event) => {
-                    // Replace 'http://127.0.0.1:5500/site/index.html' with the origin of your parent page
-                    if (event.origin !== "http://127.0.0.1:5500/site/index.html") {
-                        return; // Ignore messages from unknown origins for security
-                    }
-
-                    if (event.data.action === 'removeElement') {
-                        const element = document.querySelector(event.data.selector);
-                        if (element) {
-                            element.parentNode.removeChild(element);
-                        }
-                    }
-                });
-            </script>
-            """,
-            unsafe_allow_html=True)
