@@ -17,27 +17,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-
-st.markdown("""
-            <div id="div"></div>
-            <script>
-                window.addEventListener('message', (event) => {
-                    // Replace 'https://ultrasearch.pages.dev/' with the origin of your parent page
-                    if (event.origin !== "https://ultrasearch.pages.dev/") {
-                        return; // Ignore messages from unknown origins for security
-                    }
-
-                    if (event.data.action === 'removeElement') {
-                        const element = document.querySelector(event.data.selector);
-                        if (element) {
-                            element.parentNode.removeChild(element);
-                        }
-                    }
-                });
-            </script>
-            """,
-            unsafe_allow_html=True)
-
 # Google Analytics
 ga_code = """<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BZWCYKNKP"></script>
