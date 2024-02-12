@@ -1,40 +1,32 @@
 import streamlit as st
 import random
 import base64
+from deta_db import query2db
 import pandas as pd
 from libgen_api import LibgenSearch
-from deta import Deta
-import time
 from libgen_image import libgen_image
 import hide_st
 import requests
 from bs4 import BeautifulSoup
 
 st.set_page_config(
-    layout="centered",
-    page_title="UltraSearch",
-    page_icon="🔎",
-    initial_sidebar_state="collapsed",
-)
+    layout="centered", page_title="UltraSearch", page_icon="🔎",
+    initial_sidebar_state="collapsed")
 
-# Google Analytics
-ga_code = """<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-7BZWCYKNKP"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    # Google Analytics
+def inject_google_analytics():
+    ga_code = """<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BZWCYKNKP"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
 
-    gtag('config', 'G-7BZWCYKNKP');
-</script>"""
-st.markdown(ga_code, unsafe_allow_html=True)
+        gtag('config', 'G-7BZWCYKNKP');
+    </script>"""
+    st.markdown(ga_code, unsafe_allow_html=True)
 
-# Connect to Deta Base with your Data Key
-deta = Deta(st.secrets["data_key"])
-
-# Create a new databases
-querydb = deta.Base("ultrasearch-queries")
-#linkdb = deta.Base("ultrasearch-links") need to create db.put code below
+inject_google_analytics()
 
 # Function to randomly get data_url for image
 @st.cache_data(ttl=60)
@@ -51,14 +43,10 @@ def rnd_image_load():
 
 # Load the images and display it
 colA, colB = st.columns([0.2,0.3])
-
-# Display the random image
 data_url = rnd_image_load()
 colA.markdown(
     f'<img src="data:image/gif;base64,{data_url}" alt="random image" width="65" height="65" style="float: right; margin-top: 20px;">',
     unsafe_allow_html=True)
-
-# Heading of App
 colB.header('UltraSearch')
 
 # Create an instance of LibgenSearch
@@ -90,6 +78,9 @@ def resolve_download_links(item):
     return download_links
 
 def display_results(results):
+    # Hide query2db to disable query recording to Deta.
+    query2db(search_type, pdf_only, english_only, query)
+
     for i, book in enumerate(results, start=1):
         with st.spinner(f'Gathering knowledge... &emsp; {i}/{len(results)}'):
             download_links = resolve_download_links(book)
@@ -97,7 +88,6 @@ def display_results(results):
 
             # Columns for response
             left, mid, right = st.columns([0.8, 3, 1], gap="small")
-
             left.image(image_path)
 
             mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
@@ -109,17 +99,9 @@ def display_results(results):
                 right.markdown(f"[Download Link {i}]({value})")
             st.divider()
     
-    # record query into db
-    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-    #querydb.put({"search_type": search_type, "pdf_only": pdf_only, "english_only": english_only, "query": query, "time": current_time})
-    # db_content = db.fetch().items
-    # st.write(db_content)
 
 # Search options
-search_type = st.radio(
-    "Search by:",
-    ["Book Title", "Author"],
-    index=0, horizontal=True)
+search_type = st.radio("Search by:", ["Book Title", "Author"], index=0, horizontal=True)
 
 # Search query input
 query = st.text_input(f"Search {search_type.lower()}:", help="Search is case and symbol sensitive.")
@@ -136,7 +118,6 @@ if pdf_only:
 if english_only:
     filters['Language'] = 'English'
 
-# Search button
 if query:
     with st.spinner('Searching...'):
         results = search_books(search_type, query)
@@ -144,7 +125,7 @@ if query:
         # Create a new dataframe with only the desired columns
         new_results = pd.DataFrame(
             results, columns=['Author', 'Title', 'Publisher', 'Year', 'Size', 'Extension'])
-        new_results['Year'].fillna('NA', inplace=True)
+        new_results.fillna({'Year':'NA'}, inplace=True)
 
         st.info(f"Showing results for {len(results)} items")
         # st.dataframe(new_results, use_container_width=True) ## df of the results
@@ -157,4 +138,3 @@ if query:
 # Hide made with Streamlit footer and top-right main menu button
 hide_st.header()
 hide_st.footer()
-

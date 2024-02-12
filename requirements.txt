@@ -1,8 +1,6 @@
-libgen-api
-numpy
-pandas
-pillow
-streamlit
-deta
-bs4
-requests
+beautifulsoup4==4.12.3
+deta==1.2.0
+libgen_api==1.0.1
+pandas==1.5.3
+Requests==2.31.0
+streamlit==1.31.0
