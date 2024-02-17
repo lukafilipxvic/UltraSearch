@@ -13,27 +13,12 @@ st.set_page_config(
     layout="centered", page_title="UltraSearch", page_icon="🔎",
     initial_sidebar_state="collapsed")
 
-    # Google Analytics
-def inject_google_analytics():
-    ga_code = """<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BZWCYKNKP"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-7BZWCYKNKP');
-    </script>"""
-    st.markdown(ga_code, unsafe_allow_html=True)
-
-inject_google_analytics()
-
 # Function to randomly get data_url for image
 @st.cache_data(ttl=60)
 def rnd_image_load():
-    image_filenames = ["images/books.webp",
-                    "images/magnifying-glass-tilted-left.webp",
-                    "images/magnifying-glass-tilted-right.webp",
+    image_filenames = ["images/books-ultra.webp",
+                    "images/left-search-ultra.webp",
+                    "images/right-search-ultra.webp",
                     ]
     random_image_filename = random.choice(image_filenames)
     with open(random_image_filename, "rb") as file_:
@@ -41,13 +26,12 @@ def rnd_image_load():
         data_url = base64.b64encode(contents).decode("utf-8")
     return data_url
 
-# Load the images and display it
-colA, colB = st.columns([0.2,0.3])
+colA, colB, colC = st.columns([0.2, 0.6, 0.2])
+
 data_url = rnd_image_load()
-colA.markdown(
-    f'<img src="data:image/gif;base64,{data_url}" alt="random image" width="65" height="65" style="float: right; margin-top: 20px;">',
+colB.markdown(
+    f'<img src="data:image/gif;base64,{data_url}" alt="UltraSearch Logo" style="width: 100%; height: auto; margin-top: calc(20%); margin-bottom: 5%;">',
     unsafe_allow_html=True)
-colB.header('UltraSearch')
 
 # Create an instance of LibgenSearch
 s = LibgenSearch()
@@ -104,12 +88,15 @@ def display_results(results):
 search_type = st.radio("Search by:", ["Book Title", "Author"], index=0, horizontal=True)
 
 # Search query input
-query = st.text_input(f"Search {search_type.lower()}:", help="Search is case and symbol sensitive.")
+query = st.text_input(label=f"Search {search_type.lower()}:",
+                        placeholder=f"Search {search_type.lower()}",
+                        help="Search is case and symbol sensitive.",
+                        label_visibility="collapsed")
 
 # Filters for search
-col1, col2 = st.columns([0.2,0.8], gap="small")
+col1, col2, col3 = st.columns([0.2,0.2,0.5], gap="small")
 
-pdf_only = col1.checkbox('PDFs only', value=True)
+pdf_only = col1.checkbox('PDFs only', value=False)
 english_only = col2.checkbox('English Only', value=True)
 filters = {}
 
