@@ -1,2 +1,2 @@
 # UltraSearch
- Library search engine
+UltraSearch is a Library Genesis Wrapper that simplifies access to knowledge.
