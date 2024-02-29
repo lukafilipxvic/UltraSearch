@@ -9,6 +9,7 @@ from libgen_images import libgen_images, download_image
 import hide_st
 import requests
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 st.set_page_config(
     layout="centered", page_title="UltraSearch", page_icon="🔎",
@@ -61,30 +62,32 @@ def resolve_download_links(item):
     download_links = {link.string: link["href"] for link in links}
     return download_links
 
-def display_results(results):
-    # Hide query2db to disable query recording to Deta.
-    #query2db(search_type, pdf_only, english_only, query)
-    #with st.spinner('Getting images...'):
-    #    start = time.time()
-    #    book_covers = libgen_images(results)
+def process_book(book):
+    with st.spinner(f'Gathering knowledge...'):
+        download_links = resolve_download_links(book)
+        book_cover = download_image(book)
+        return book, download_links, book_cover
 
+def display_book_info(book_info):
+    book, download_links, book_cover = book_info
+    left, mid, right = st.columns([0.8, 3, 1], gap="small")
+    left.image(image=book_cover, width=100)
 
-    for i, book in enumerate(results):
-        with st.spinner(f'Gathering knowledge... &emsp; {i+1}/{len(results)}'):
-            download_links = resolve_download_links(book)
-            book_cover = download_image(results[i])
-            # Columns for response
-        left, mid, right = st.columns([0.8, 3, 1], gap="small")
-        left.image(image=book_cover, width=100)
+    mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
+    mid.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare ipfs link
+    mid.write(f"*{book['Author']}*")
+    # Display the download links as "Link 1", "Link 2", "Link 3"
+    for i, value in enumerate(download_links.values(), start=1):
+        right.markdown(f"[Download Link {i}]({value})")
+    st.divider()
 
-        mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-        mid.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare ipfs link
-        mid.write(f"*{book['Author']}*")
-        # Display the download links as "Link 1", "Link 2", "Link 3"
-        for i, value in enumerate(download_links.values(), start=1):
-            right.markdown(f"[Download Link {i}]({value})")
-        st.divider()
-
+def display_results_concurrently(results):
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        # Submit all tasks to the executor
+        future_to_book = {executor.submit(process_book, book): book for book in results}
+        for future in as_completed(future_to_book):
+            book_info = future.result()
+            display_book_info(book_info)
 
 # Search options
 search_type = st.radio("Search by:", ["Book Title", "Author"], index=0, horizontal=True)
@@ -120,7 +123,7 @@ if query:
         # st.dataframe(new_results, use_container_width=True) ## df of the results
         st.divider()
         start = time.time()
-        display_results(results)
+        display_results_concurrently(results)
         end = time.time()
         colB.write(f"The time of execution of above program is : {end-start} s")
     else:
