@@ -122,7 +122,7 @@ if query:
         start = time.time()
         display_results(results)
         end = time.time()
-        colB.write(f"The time of execution of above program is : {end-start} s")
+        colB.write(f"({end-start:.2f} seconds)")
     else:
         st.info("None found. Please try again.")
 
