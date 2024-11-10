@@ -1,16 +1,19 @@
 import streamlit as st
 import random
 import base64
-import pandas as pd
+from bs4 import BeautifulSoup
 from libgen_api import LibgenSearch
+import pandas as pd
+import stealth_requests as requests
+from tools.analytics import inject_ga
 from tools.libgen_image import libgen_image
 import tools.hide_st as hide_st
-import stealth_requests as requests
-from bs4 import BeautifulSoup
 
 st.set_page_config(
     layout="centered", page_title="UltraSearch", page_icon="🔎",
     initial_sidebar_state="collapsed")
+
+inject_ga()
 
 @st.cache_data(ttl=60)
 def rnd_image_load():
