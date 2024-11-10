@@ -12,7 +12,6 @@ st.set_page_config(
     layout="centered", page_title="UltraSearch", page_icon="🔎",
     initial_sidebar_state="collapsed")
 
-# Function to randomly get data_url for image
 @st.cache_data(ttl=60)
 def rnd_image_load():
     image_filenames = ["images/books-ultra.webp",
@@ -35,7 +34,6 @@ colB.markdown(
     unsafe_allow_html=True)
 colB.write()
 
-# Create an instance of LibgenSearch
 s = LibgenSearch()
 
 def search_books(search_type, query):
@@ -81,8 +79,6 @@ def display_results(results):
             for i, value in enumerate(download_links.values(), start=1):
                 right.markdown(f"[Download Link {i}]({value})")
             st.divider()
-    
-
 
 col1, col2, col3 = st.columns([0.32, 0.45, 0.2], gap="small")
 
@@ -121,6 +117,5 @@ if st.button("Search"):
         st.info("None found. Please try again.")
 
 
-# Hide made with Streamlit footer and top-right main menu button
-#hide_st.header()
+hide_st.header()
 hide_st.footer()
