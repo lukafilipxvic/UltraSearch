@@ -1,12 +1,11 @@
 import streamlit as st
 import random
 import base64
-from deta_db import query2db
 import pandas as pd
 from libgen_api import LibgenSearch
-from libgen_image import libgen_image
-import hide_st
-import requests
+from tools.libgen_image import libgen_image
+import tools.hide_st as hide_st
+import stealth_requests as requests
 from bs4 import BeautifulSoup
 
 st.set_page_config(
@@ -30,8 +29,11 @@ colA, colB, colC = st.columns([0.2, 0.6, 0.2])
 
 data_url = rnd_image_load()
 colB.markdown(
-    f'<img src="data:image/gif;base64,{data_url}" alt="UltraSearch Logo" style="width: 100%; height: auto; margin-top: calc(20%); margin-bottom: 5%;">',
+    f'''
+    <img src="data:image/gif;base64,{data_url}" alt="UltraSearch Logo" style="width: 100%; height: auto; margin-top: calc(20%); margin-bottom: 5%;">
+    ''',
     unsafe_allow_html=True)
+colB.write()
 
 # Create an instance of LibgenSearch
 s = LibgenSearch()
@@ -48,12 +50,12 @@ def search_books(search_type, query):
 
     filtered_results = []
     for book in results:
-        if (not pdf_only or book['Extension'] == 'pdf') and (not english_only or book['Language'] == 'English'):
+        if (file_type == 'Any' or (file_type == 'EPUBs only' and book['Extension'] == 'epub') or (file_type == 'PDFs only' and book['Extension'] == 'pdf')) and (not english_only or book['Language'] == 'English'):
             filtered_results.append(book)
     return filtered_results
 
 def resolve_download_links(item):
-    MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Pinata"] # libgen-api doesn't get the Pinata link
+    MIRROR_SOURCES = ["GET", "Cloudflare", "IPFS.io", "Pinata"]
     mirror_1 = item["Mirror_1"]
     page = requests.get(mirror_1)
     soup = BeautifulSoup(page.text, "html.parser")
@@ -62,9 +64,6 @@ def resolve_download_links(item):
     return download_links
 
 def display_results(results):
-    # Hide query2db to disable query recording to Deta.
-    query2db(search_type, pdf_only, english_only, query)
-
     for i, book in enumerate(results, start=1):
         with st.spinner(f'Gathering knowledge... &emsp; {i}/{len(results)}'):
             download_links = resolve_download_links(book)
@@ -75,7 +74,7 @@ def display_results(results):
             left.image(image_path)
 
             mid.caption(f"**Year:** {book['Year']}&emsp;**Pages:** {book['Pages']}&emsp;**Size:** {book['Size']}&emsp;**Extension**: {book['Extension']}")
-            mid.write(f"[**{book['Title']}**]({list(download_links.values())[1]})")  # Hyperlink the book title with the Cloudflare ipfs link
+            mid.write(f"[**{book['Title']}**]({list(download_links.values())[0]})")
             mid.write(f"*{book['Author']}*")
 
             # Display the download links as "Link 1", "Link 2", "Link 3"
@@ -84,32 +83,32 @@ def display_results(results):
             st.divider()
     
 
-# Search options
-search_type = st.radio("Search by:", ["Book Title", "Author"], index=0, horizontal=True)
 
-# Search query input
+col1, col2, col3 = st.columns([0.32, 0.45, 0.2], gap="small")
+
+search_type = col1.radio("Search by:", ["Book Title", "Author"], index=0, horizontal=True, label_visibility="collapsed")
+file_type = col2.radio('File Extension:', ['Any', 'EPUBs only', 'PDFs only'], index=0, horizontal=True, label_visibility="collapsed")
+english_only = col3.checkbox('English Only', value=True)
+
 query = st.text_input(label=f"Search {search_type.lower()}:",
                         placeholder=f"Search {search_type.lower()}",
                         help="Search is case and symbol sensitive.",
                         label_visibility="collapsed")
 
-# Filters for search
-col1, col2, col3 = st.columns([0.2,0.2,0.5], gap="small")
 
-pdf_only = col1.checkbox('PDFs only', value=False)
-english_only = col2.checkbox('English Only', value=True)
 filters = {}
 
-if pdf_only:
+if file_type == 'EPUBs only':
+    filters['Extension'] = 'epub'
+elif file_type == 'PDFs only':
     filters['Extension'] = 'pdf'
 if english_only:
     filters['Language'] = 'English'
 
-if query:
+if st.button("Search"):
     with st.spinner('Searching...'):
         results = search_books(search_type, query)
     if results:
-        # Create a new dataframe with only the desired columns
         new_results = pd.DataFrame(
             results, columns=['Author', 'Title', 'Publisher', 'Year', 'Size', 'Extension'])
         new_results.fillna({'Year':'NA'}, inplace=True)
@@ -123,5 +122,5 @@ if query:
 
 
 # Hide made with Streamlit footer and top-right main menu button
-hide_st.header()
+#hide_st.header()
 hide_st.footer()

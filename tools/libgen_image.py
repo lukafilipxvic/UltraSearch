@@ -1,4 +1,4 @@
-import requests
+import stealth_requests as requests
 from bs4 import BeautifulSoup
 import urllib.request
 
@@ -7,8 +7,7 @@ def libgen_image(item):
         request.
     '''
     page = requests.get(item["Mirror_1"])
-
-    soup = BeautifulSoup(page.text, "lxml")  # Use the lxml parser
+    soup = BeautifulSoup(page.text, "lxml")
     img = soup.find("img", alt="cover")
     domain = page.url.split("//")[1].split("/")[0]
 
