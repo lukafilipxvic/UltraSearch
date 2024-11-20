@@ -1,5 +1,5 @@
 beautifulsoup4==4.12.3
-libgen_api==1.0.1
+libgen_api_modern==0.1.13
 pandas==2.2.3
 stealth_requests==1.2.1
-streamlit==1.39.0
+streamlit==1.40.0
