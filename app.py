@@ -4,15 +4,12 @@ import random
 import base64
 from libgen_api_modern import LibgenSearch
 import pandas as pd
-from tools.analytics import inject_ga
 from tools.image_downloader import async_download_image
 import tools.hide_st as hide_st
 
 st.set_page_config(
     layout="centered", page_title="UltraSearch", page_icon="🔎",
     initial_sidebar_state="collapsed")
-
-inject_ga()
 
 @st.cache_data(ttl=60)
 def rnd_image_load():
